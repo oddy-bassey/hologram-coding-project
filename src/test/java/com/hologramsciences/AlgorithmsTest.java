@@ -36,6 +36,7 @@ public class AlgorithmsTest {
                 Arrays.asList(3, 4),
                 Arrays.asList(5, 6, 7)
         );
+        System.out.println( Algorithms.cartesianProductForLists(listOfLists).toString());
 
         assertEquals(
                 Algorithms.cartesianProductForLists(listOfLists),

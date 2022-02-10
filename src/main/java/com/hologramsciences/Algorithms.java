@@ -43,19 +43,36 @@ public class Algorithms {
         // Solution: cartesian product given by A * B = {{a, b} : a E A, b E B}
         List<List<T>> result = new ArrayList<>();
 
-        // Assuming only two lists are given
-        // iterating through the first list
-        for (T a : listOfLists.get(0)) {
-
-            // iterating through the second list
-            for (T b : listOfLists.get(1)) {
-                // determining {a, b}
-                result.add(Arrays.asList(a, b));
-            }
-        }
+        // create a list for each value of the first list
+        deriveProduct(result, new ArrayList<>(), listOfLists);
 
         // returning the result of the cartesian product of a list of lists of any type T
         return result;
+    }
+
+    private static <T> void deriveProduct(List<List<T>> result, List<T> existingTupleToComplete, List<List<T>> inputData){
+
+        // iterating through the first list
+        for (T value : inputData.get(0)) {
+            List<T> newExistingTuple = new ArrayList<>(existingTupleToComplete);
+            newExistingTuple.add(value);
+
+            // if only one tuple is left
+            if(inputData.size() == 1){
+                // create new list with the existing tuple for each value with the value added
+                result.add(newExistingTuple);
+            }else {
+                // if there are several rows, recurse through each of them
+                List<List<T>> newValues = new ArrayList<>();
+
+                // create the next level of values
+                for(int i=1; i<inputData.size(); i++){
+                    newValues.add(inputData.get(i));
+                }
+
+                deriveProduct(result, newExistingTuple, newValues);
+            }
+        }
     }
 
     /**
