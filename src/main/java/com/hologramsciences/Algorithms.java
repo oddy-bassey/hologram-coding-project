@@ -89,7 +89,7 @@ public class Algorithms {
         List<Integer> coins = Arrays.asList(1, 5, 10, 25, 50, 100);
 
         // Array of possible combinations (distinct ways)
-        int [] combinations = new int[totalCents+1];
+        long [] combinations = new long[totalCents+1];
 
         combinations[0] = 1;
 
