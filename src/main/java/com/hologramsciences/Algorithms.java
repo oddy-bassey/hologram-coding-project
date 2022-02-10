@@ -1,5 +1,7 @@
 package com.hologramsciences;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,7 +37,22 @@ public class Algorithms {
      */
     public static final <T> List<List<T>> cartesianProductForLists(final List<List<T>> listOfLists) {
         // TODO Implement me
-        return Collections.emptyList();
+
+        if(listOfLists.size()<1) return Collections.emptyList();
+
+        // cartesian product given by A * B = {{a, b} : a E A, b E B}
+        List<List<T>> result = new ArrayList<>();
+
+        // Assuming only two lists are given
+        // iterating through the first list
+        for (T a : listOfLists.get(0)) {
+
+            // iterating through the second list
+            for (T b : listOfLists.get(1)) {
+                result.add(Arrays.asList(a, b));
+            }
+        }
+        return result;
     }
 
     /**
