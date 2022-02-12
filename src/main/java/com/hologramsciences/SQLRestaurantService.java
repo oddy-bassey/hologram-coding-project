@@ -73,11 +73,11 @@ public class SQLRestaurantService {
 
         final String query = String.join("\n"
                 ,
-                " select * from restaurants"
-                , ""
-                , ""
-                , ""
-                , ""
+                " select restaurants.id, restaurants.name , count (restaurants.id) itemCount from restaurants"
+                , "join menu_items"
+                , "on restaurants.id = menu_items.restaurant_id"
+                , "group by restaurants.name, restaurants.id"
+                , "having itemCount >= ?"
         );
 
         return runQueryAndParseRestaurants(query, menuSize);

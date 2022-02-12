@@ -20,6 +20,7 @@ import org.jooq.meta.jaxb.Target;
 import com.hologramsciences.jooq.tables.records.RestaurantsRecord;
 
 import static com.hologramsciences.jooq.tables.Restaurants.RESTAURANTS;
+import static com.hologramsciences.jooq.tables.MenuItems.MENU_ITEMS;
 import static java.time.temporal.ChronoField.MINUTE_OF_DAY;
 
 public class JooqRestaurantService {
@@ -57,10 +58,14 @@ public class JooqRestaurantService {
      *
      */
     public List<RestaurantsRecord> getRestaurantsWithMenuOfSizeGreaterThanOrEqualTo(final Integer menuSize) throws SQLException {
-        return withDSLContext(create -> {
-            return create
-                    .selectFrom(RESTAURANTS)
-                    .fetch();
+         return withDSLContext(create -> {
+            return create.select(RESTAURANTS.ID, RESTAURANTS.NAME, DSL.count(RESTAURANTS.ID))
+                    .from(RESTAURANTS)
+                    .join(MENU_ITEMS).on(RESTAURANTS.ID.eq(MENU_ITEMS.RESTAURANT_ID))
+                    .groupBy(RESTAURANTS.ID, RESTAURANTS.NAME)
+                    .having(DSL.count(RESTAURANTS.ID).greaterOrEqual(menuSize))
+                    .fetch()
+                    .into(RESTAURANTS);
         });
     }
 
