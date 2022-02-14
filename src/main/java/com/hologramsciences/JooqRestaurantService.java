@@ -21,6 +21,7 @@ import com.hologramsciences.jooq.tables.records.RestaurantsRecord;
 
 import static com.hologramsciences.jooq.tables.Restaurants.RESTAURANTS;
 import static com.hologramsciences.jooq.tables.MenuItems.MENU_ITEMS;
+import static com.hologramsciences.jooq.tables.OpenHours.OPEN_HOURS;
 import static java.time.temporal.ChronoField.MINUTE_OF_DAY;
 
 public class JooqRestaurantService {
@@ -41,10 +42,21 @@ public class JooqRestaurantService {
         final String dayOfWeekString = dayOfWeek.toString();
         final Integer minuteOfDay    = localTime.get(MINUTE_OF_DAY);
 
+        final String yesterDayString = dayOfWeek.minus(1L).toString();
+
         return withDSLContext(create -> {
             return create
-                    .selectFrom(RESTAURANTS)
-                    .fetch();
+                    .select()
+                    .from(RESTAURANTS)
+                    .join(OPEN_HOURS).on(RESTAURANTS.ID.eq(OPEN_HOURS.RESTAURANT_ID))
+                    .where(OPEN_HOURS.DAY_OF_WEEK.eq(dayOfWeekString))
+                    .and(OPEN_HOURS.START_TIME_MINUTE_OF_DAY.lessThan(OPEN_HOURS.END_TIME_MINUTE_OF_DAY))
+                    .and(OPEN_HOURS.START_TIME_MINUTE_OF_DAY.lessThan(minuteOfDay)).and(OPEN_HOURS.END_TIME_MINUTE_OF_DAY.greaterThan(minuteOfDay))
+                    .or(OPEN_HOURS.DAY_OF_WEEK.eq(yesterDayString))
+                    .and(OPEN_HOURS.START_TIME_MINUTE_OF_DAY.greaterThan(OPEN_HOURS.END_TIME_MINUTE_OF_DAY))
+                    .and(OPEN_HOURS.END_TIME_MINUTE_OF_DAY.greaterThan(minuteOfDay))
+                    .fetch()
+                    .into(RESTAURANTS);
         });
     }
 

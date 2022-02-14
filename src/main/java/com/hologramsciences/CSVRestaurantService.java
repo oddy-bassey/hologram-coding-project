@@ -193,7 +193,6 @@ public class CSVRestaurantService {
                     // else check that the openHours for previous day span through midnight into the requested day
                     Restaurant.OpenHours yesterdayOpenHours = yesterdayOpenHoursOptional.get();
                     if (yesterdayOpenHours.getStartTime().compareTo(yesterdayOpenHours.getEndTime()) > 0
-                            && localTime.compareTo(LocalTime.parse("05:00")) < 0
                             && (localTime.compareTo(yesterdayOpenHours.getEndTime()) < 0)){
                         openRestaurants.add(restaurant);
                     }
