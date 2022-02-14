@@ -38,12 +38,11 @@ public class Algorithms {
     public static final <T> List<List<T>> cartesianProductForLists(final List<List<T>> listOfLists) {
         // TODO Implement me
 
-        if(listOfLists.size()<1) return Collections.emptyList();
-
         // Solution: cartesian product given by A * B = {{a, b} : a E A, b E B}
+        if(listOfLists.size()<1) return Collections.emptyList();
         List<List<T>> result = new ArrayList<>();
 
-        // create a list for each value of the first list
+        // deriving the cartesian product of n lists
         deriveProduct(result, new ArrayList<>(), listOfLists);
 
         // returning the result of the cartesian product of a list of lists of any type T
@@ -52,7 +51,7 @@ public class Algorithms {
 
     private static <T> void deriveProduct(List<List<T>> result, List<T> existingTupleToComplete, List<List<T>> inputData){
 
-        // iterating through the first list
+        // iterating through the current list
         for (T value : inputData.get(0)) {
             List<T> newExistingTuple = new ArrayList<>(existingTupleToComplete);
             newExistingTuple.add(value);

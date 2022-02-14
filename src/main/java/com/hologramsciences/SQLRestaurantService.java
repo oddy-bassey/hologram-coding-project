@@ -44,7 +44,6 @@ public class SQLRestaurantService {
         final DayOfWeek previousDayOfWeek = dayOfWeek.minus(1);
         final String previousDayOfWeekString = previousDayOfWeek.toString();
 
-
         final Integer minuteOfDay    = localTime.get(MINUTE_OF_DAY);
 
         final String query = String.join("\n"
@@ -73,7 +72,6 @@ public class SQLRestaurantService {
      *
      */
     public List<RestaurantRecord> getRestaurantsWithMenuOfSizeGreaterThanOrEqualTo(final Integer menuSize) throws SQLException {
-
 
         final String query = String.join("\n"
                 ,
