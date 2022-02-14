@@ -5,9 +5,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoField;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -57,6 +55,18 @@ public class CSVRestaurantService {
      *
      */
     public static Option<Restaurant> parse(final CSVRecord r) {
+        if(r.size()>1) {
+            // retrieving all opening hours for a given record
+            Option<Map<DayOfWeek, Restaurant.OpenHours>> openHoursMap = Option.some(CSVRestaurantService.parseOpenHour(r.get(1)));
+
+            /*
+             * if the data returned is null, it means either:
+             * - any of the OpenHours for a given restaurant have the same startTime and endDate
+             * - or the restaurant has no openingHour string
+             * else return openHours data for a given restaurant in the record.
+             */
+            if (openHoursMap.get().size() > 0) return Option.some(new Restaurant(r.get(0), openHoursMap.get()));
+        }
         return Option.none();
     }
 
@@ -64,7 +74,72 @@ public class CSVRestaurantService {
      * TODO: Implement me, This is a useful helper method
      */
     public static Map<DayOfWeek, Restaurant.OpenHours> parseOpenHour(final String openhoursString) {
-        return Collections.emptyMap();
+
+        Map<DayOfWeek, Restaurant.OpenHours> openHoursMap = new HashMap<>();
+        // data objects to keep track of data groups(day : time)
+        List<String> dayGroup = new ArrayList<>(), timeSet = new ArrayList<>();
+
+        StringBuilder partText = new StringBuilder();
+        boolean isTimeBreak = false, isClosingTime = false;
+
+        for (int i = 0; i < openhoursString.length(); i++) {
+            String character = openhoursString.substring(i, i+1);
+
+            switch (character){
+                case (";"):
+
+                    if(isTimeBreak){
+
+                        timeSet.add(partText.toString());
+                        isTimeBreak = false;
+
+                        if (addOpenHourData(openHoursMap, dayGroup, timeSet)) return Collections.emptyMap();
+                        partText.setLength(0);
+                    }
+                    break;
+
+                case (","):
+                case ("|"):
+                    dayGroup.add(partText.toString());
+                    partText.setLength(0);
+
+                    if(character.equals("|")) isTimeBreak = true;
+
+                    break;
+
+                case ("-"):
+                    isClosingTime = true;
+                    timeSet.add(partText.toString());
+                    partText.setLength(0);
+
+                    break;
+
+                default:
+                    partText.append(character);
+                    if(i == openhoursString.length()-1) {
+                        timeSet.add(partText.toString());
+
+                        if (addOpenHourData(openHoursMap, dayGroup, timeSet)) return Collections.emptyMap();
+                    }
+            }
+        }
+        return openHoursMap;
+    }
+
+    private static boolean addOpenHourData(Map<DayOfWeek, Restaurant.OpenHours> openHoursMap, List<String> dayGroup, List<String> timeSet) {
+        for (String day : dayGroup) {
+            String openHour = timeSet.get(0);
+            String closingHour = timeSet.get(1);
+
+            if(openHour.equals(closingHour)) return true;
+
+            openHoursMap.put(CSVRestaurantService.getDayOfWeek(day).get(),
+                    new Restaurant.OpenHours(LocalTime.parse(openHour),LocalTime.parse(closingHour)));
+        }
+
+        timeSet.clear();
+        dayGroup.clear();
+        return false;
     }
 
     public CSVRestaurantService() throws IOException {
@@ -101,7 +176,31 @@ public class CSVRestaurantService {
      *
      */
     public List<Restaurant> getOpenRestaurants(final DayOfWeek dayOfWeek, final LocalTime localTime) {
-        return Collections.emptyList();
+        List<Restaurant> openRestaurants = new ArrayList<>();
+
+        for (Restaurant restaurant : getAllRestaurants()) {
+            Optional<Restaurant.OpenHours> todayOpenHoursOptional = Optional.ofNullable(restaurant.getOpenHoursMap().get(dayOfWeek));
+            Optional<Restaurant.OpenHours> yesterdayOpenHoursOptional = Optional.ofNullable(restaurant.getOpenHoursMap().get(dayOfWeek.minus(1L)));
+
+            if(todayOpenHoursOptional.isPresent() && yesterdayOpenHoursOptional.isPresent()) {
+                Restaurant.OpenHours todayOpenHours = todayOpenHoursOptional.get();
+
+                // check if the restaurant is open (startTime < localTime   && localTime < endTime) for the requested day
+                if (todayOpenHours.getStartTime().compareTo(localTime) < 0
+                        && todayOpenHours.getEndTime().compareTo(localTime) > 0) {
+                    openRestaurants.add(restaurant);
+                }else {
+                    // else check that the openHours for previous day span through midnight into the requested day
+                    Restaurant.OpenHours yesterdayOpenHours = yesterdayOpenHoursOptional.get();
+                    if (yesterdayOpenHours.getStartTime().compareTo(yesterdayOpenHours.getEndTime()) > 0
+                            && localTime.compareTo(LocalTime.parse("05:00")) < 0
+                            && (localTime.compareTo(yesterdayOpenHours.getEndTime()) < 0)){
+                        openRestaurants.add(restaurant);
+                    }
+                }
+            }
+        }
+        return openRestaurants;
     }
 
     public List<Restaurant> getOpenRestaurantsForLocalDateTime(final LocalDateTime localDateTime) {

@@ -47,13 +47,16 @@ public class SQLRestaurantService {
 
         final Integer minuteOfDay    = localTime.get(MINUTE_OF_DAY);
 
+        System.out.println("time "+minuteOfDay);
+
         final String query = String.join("\n"
                 ,
                  "select * from restaurants"
-                , ""
-                , ""
-                , ""
-                , ""
+                , "join open_hours"
+                , "on restaurants.id = open_hours.restaurant_id"
+                , "where open_hours.day_of_week = ?"
+                , "and open_hours.end_time_minute_of_day > open_hours.start_time_minute_of_day"
+                , "and ? between open_hours.start_time_minute_of_day and open_hours.end_time_minute_of_day"
         );
 
         return runQueryAndParseRestaurants(query, dayOfWeekString, minuteOfDay);
@@ -153,6 +156,7 @@ public class SQLRestaurantService {
 
     private List<RestaurantRecord> runQueryAndParseRestaurants(final String query, final Object... parameters) throws SQLException {
         final List<RestaurantRecord> results = new ArrayList<>();
+
          runOnConnection(statement-> {
 
              final PreparedStatement preparedStatement = statement.prepareStatement(query);
@@ -164,6 +168,8 @@ public class SQLRestaurantService {
              while (rs.next()) {
                  results.add(new RestaurantRecord(rs.getLong("id"), rs.getString("name")));
              }
+
+             System.out.println("data: "+results.toString()+" size: "+results.size());
          });
 
          return results;
