@@ -80,7 +80,7 @@ public class CSVRestaurantService {
         List<String> dayGroup = new ArrayList<>(), timeSet = new ArrayList<>();
 
         StringBuilder partText = new StringBuilder();
-        boolean isTimeBreak = false, isClosingTime = false;
+        boolean isTimeBreak = false;
 
         for (int i = 0; i < openhoursString.length(); i++) {
             String character = openhoursString.substring(i, i+1);
@@ -108,7 +108,6 @@ public class CSVRestaurantService {
                     break;
 
                 case ("-"):
-                    isClosingTime = true;
                     timeSet.add(partText.toString());
                     partText.setLength(0);
 
